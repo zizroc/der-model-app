@@ -1,101 +1,13 @@
-library(shiny)
-library(shinytest)
-library(tidyverse)
-library(cowplot)
-library(scales)
-library(readr)
-library(rdrop2)
-library(DT)
+local_dir <- "~/Documents/R_Projects/der-model-app/"
+
+# load libraries ----
+source(paste0(local_dir,"R/libraries.R"))
 
 # data ----
-base_data_df <-
-  readRDS(file = "~/Documents/Data/DER_output/food_feed_pathways_proj.rds")
-
-world_data_df <- base_data_df %>%
-  group_by(diet_plan, scenario, food_group, year, target_year) %>%
-  summarise(kt_yr_fit = sum(kt_yr_fit, na.rm = TRUE),
-            .groups = "drop") %>%
-  mutate(iso_alpha3 = "WORLD")
-
-data_df <- base_data_df %>%
-  dplyr::bind_rows(world_data_df) %>%
-  dplyr::mutate(diet_plan = if_else(
-    diet_plan == "ELA-PHD",
-    "EAT-Lancet",
-    if_else(diet_plan == "FDA-SDP",
-            "USDA",
-            diet_plan)
-  ))
-# %>%
-#   dplyr::mutate(diet_plan_f = factor(diet_plan, levels = c("EAT-Lancet", "CNS-CFP", "USDA")))
-
-country_codes <-
-  data_df %>% distinct(iso_alpha3) %>% pull(iso_alpha3)
+source(paste0(local_dir,"R/app-data.R"))
 
 # plot graphics elements ----
-colorz <-
-  c(
-    "animal products" = "#F17EB8",
-    "fish & seafood" = "#489ED3",
-    "plant products" = "#EEAF35"
-  )
-xlabz <- c("CNS-CFP" = "CFP",
-           "ELA-PHD" = "ELA",
-           "FDA-SDP" = "USDA")
-labz <-
-  c("Animal Products", "Fish and Seafood", "Plant Products")
-
-mitigate_arrow <-
-  ggplot(data = data.frame(x = c(0, 1), y = c(0, 1)),
-         aes(x = x, y = y)) +
-  annotate(
-    "segment",
-    x = 0,
-    xend = 0,
-    y = 0,
-    yend = 1,
-    arrow = arrow()
-  ) +
-  annotate(
-    "text",
-    x = -0.02,
-    y = 0.5,
-    label = "Socio-economic challenges for mitigation",
-    size = 4,
-    angle = 90
-  ) +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    panel.grid = element_blank()
-  ) +
-  coord_cartesian(xlim = c(-0.04, 0.04), y = c(0, 1))
-
-adapt_arrow <- ggplot(data = data.frame(x = c(0, 1), y = c(0, 1)),
-                      aes(x = x, y = y)) +
-  annotate(
-    "segment",
-    x = 0,
-    xend = 1,
-    y = 0,
-    yend = 0,
-    arrow = arrow()
-  ) +
-  annotate(
-    "text",
-    x = 0.5,
-    y = 0.025,
-    label = "Socio-economic challenges for adaptation",
-    size = 4
-  ) +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    panel.grid = element_blank()
-  ) +
-  coord_cartesian(xlim = c(0, 1), y = c(-0.04, 0.04))
+source(paste0(local_dir,"R/plot-graphics-elements.R"))
 
 # UI ----
 not_sel <- "Not Selected"
@@ -146,11 +58,11 @@ main_page <- tabPanel(title = "Plots",
                         mainPanel(width = 9,
                                   tabsetPanel(
                                     tabPanel(title = "Plot",
-                                             # pathways plot output ----
+                                             ### pathways plot output ----
                                              shiny::plotOutput(outputId = "derPathways_areaPlot")),
                                     tabPanel(
                                       title = "Data",
-                                      # pathways table output ----
+                                      ### pathways table output ----
                                       DT::dataTableOutput(outputId = "derPathways_dataTable")
                                     )
                                   ))
@@ -161,64 +73,11 @@ ui <- navbarPage(title = "DER Transformation Pathways App",
                  main_page,
                  about_page)
 
-# ui <- fluidPage(
-#
-#   # # organization ----
-#   # navbarPage(
-#   #   tabPanel()
-#   # ),
-#
-#   ## app title ----
-#   tags$h1("DER Transformation Pathways App"),
-#
-#   ## app subtitle ----
-#   p(strong(
-#     "Exploring pathways for healthy, sustainable food systems"
-#   )),
-#
-#   ## country id input ----
-#   selectInput(
-#     inputId = "country_id",
-#     label = "Select a country or WORLD",
-#     choices = country_codes,
-#     selected = NULL,
-#     multiple = FALSE,
-#     selectize = TRUE,
-#     width = NULL
-#   ),
-#   ## diet id input ----
-#   selectInput(
-#     inputId = "diet_type",
-#     label = "Select a dietary guideline",
-#     choices = c("ELA-PHD", "CNS-CFP", "FDA-SDP"),
-#     selected = NULL,
-#     multiple = FALSE,
-#     selectize = TRUE,
-#     width = NULL
-#   ),
-#   ## target year slider input ----
-#   selectInput(
-#     inputId = "targ_year",
-#     label = "Select a target year",
-#     choices = seq(2045, 2065, by = 5),
-#     selected = 2050,
-#     multiple = FALSE,
-#     selectize = TRUE,
-#     width = NULL
-#   ),
-#
-#   # pathways plot output ----
-#   shiny::plotOutput(outputId = "derPathways_areaPlot")
-#
-#   # # body mass table output ----
-#   # DT::dataTableOutput(outputId = "bodyMass_dataTable")
-#
-# )
-
+# server ----
 server <- function(input, output) {
-  # render area plot ----
+  ## render area plot ----
   output$derPathways_areaPlot <- renderPlot({
-    ## data frame filtered by SSP ----
+    ### data frame filtered by SSP ----
     data_ssp1_df <- reactive({
       data_df %>%
         filter(iso_alpha3 %in% input$country_id) %>%
@@ -270,7 +129,7 @@ server <- function(input, output) {
                   .groups = "drop")
     })
     
-    ## code to generate area plots here ----
+    ### plot generation ----
     p_ssp1 <- ggplot(na.omit(data_ssp1_df()),
                      aes(
                        x = year,
@@ -474,6 +333,7 @@ server <- function(input, output) {
     
   })
   
+  ### data table ----
   output$derPathways_dataTable <- DT::renderDataTable(
     DT::datatable(
       data_df %>%
