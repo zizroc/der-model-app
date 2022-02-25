@@ -1,5 +1,5 @@
 # data
-data_dir <- "~/Documents/Data/DER_output/"
+data_dir <- "~/Documents/R_Projects/der-model-app/data/"
 
 base_data_df <-
   readRDS(file = paste0(data_dir, "food_feed_pathways_proj.rds"))
