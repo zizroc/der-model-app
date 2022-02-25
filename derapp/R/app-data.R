@@ -1,8 +1,7 @@
 # data
-data_dir <- "~/Documents/R_Projects/der-model-app/data/"
 
 base_data_df <-
-  readRDS(file = paste0(data_dir, "food_feed_pathways_proj.rds"))
+  readRDS("data/food_feed_pathways_proj.rds")
 
 world_data_df <- base_data_df %>%
   group_by(diet_plan, scenario, food_group, year, target_year) %>%

@@ -1,107 +1,106 @@
-# local_dir <- "~/Documents/R_Projects/der-model-app/"
 
 # load libraries ----
-# source(paste0(local_dir,"R/libraries.R"))
-library(shiny)
-library(shinytest)
-library(rsconnect)
-library(tidyverse)
-library(cowplot)
-library(scales)
-library(readr)
-library(rdrop2)
-library(DT)
+source("R/libraries.R")
+# library(shiny)
+# library(shinytest)
+# library(rsconnect)
+# library(tidyverse)
+# library(cowplot)
+# library(scales)
+# library(readr)
+# library(rdrop2)
+# library(DT)
 
 # data ----
-# source(paste0(local_dir,"R/app-data.R"))
-# data_dir <- "~/Documents/R_Projects/der-model-app/data/"
-base_data_df <-
-  readRDS(file = "data/food_feed_pathways_proj.rds")
-
-world_data_df <- base_data_df %>%
-  group_by(diet_plan, scenario, food_group, year, target_year) %>%
-  summarise(kt_yr_fit = sum(kt_yr_fit, na.rm = TRUE),
-            .groups = "drop") %>%
-  mutate(iso_alpha3 = "WORLD")
-
-data_df <- base_data_df %>%
-  dplyr::bind_rows(world_data_df) %>%
-  dplyr::mutate(diet_plan = if_else(
-    diet_plan == "ELA-PHD",
-    "EAT-Lancet",
-    if_else(diet_plan == "FDA-SDP",
-            "USDA",
-            diet_plan)
-  ))
-
-country_codes <-
-  data_df %>% distinct(iso_alpha3) %>% pull(iso_alpha3)
+source("R/app-data.R")
+# # data_dir <- "~/Documents/R_Projects/der-model-app/data/"
+# base_data_df <-
+#   readRDS(file = "data/food_feed_pathways_proj.rds")
+# 
+# world_data_df <- base_data_df %>%
+#   group_by(diet_plan, scenario, food_group, year, target_year) %>%
+#   summarise(kt_yr_fit = sum(kt_yr_fit, na.rm = TRUE),
+#             .groups = "drop") %>%
+#   mutate(iso_alpha3 = "WORLD")
+# 
+# data_df <- base_data_df %>%
+#   dplyr::bind_rows(world_data_df) %>%
+#   dplyr::mutate(diet_plan = if_else(
+#     diet_plan == "ELA-PHD",
+#     "EAT-Lancet",
+#     if_else(diet_plan == "FDA-SDP",
+#             "USDA",
+#             diet_plan)
+#   ))
+# 
+# country_codes <-
+#   data_df %>% distinct(iso_alpha3) %>% pull(iso_alpha3)
 
 # plot graphics elements ----
-# source(paste0(local_dir,"R/plot-graphics-elements.R"))
-colorz <-
-  c(
-    "animal products" = "#F17EB8",
-    "fish & seafood" = "#489ED3",
-    "plant products" = "#EEAF35"
-  )
-xlabz <- c("CNS-CFP" = "CFP",
-           "ELA-PHD" = "ELA",
-           "FDA-SDP" = "USDA")
-labz <-
-  c("Animal Products", "Fish and Seafood", "Plant Products")
-
-mitigate_arrow <-
-  ggplot(data = data.frame(x = c(0, 1), y = c(0, 1)),
-         aes(x = x, y = y)) +
-  annotate(
-    "segment",
-    x = 0,
-    xend = 0,
-    y = 0,
-    yend = 1,
-    arrow = arrow()
-  ) +
-  annotate(
-    "text",
-    x = -0.02,
-    y = 0.5,
-    label = "Socio-economic challenges for mitigation",
-    size = 4,
-    angle = 90
-  ) +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    panel.grid = element_blank()
-  ) +
-  coord_cartesian(xlim = c(-0.04, 0.04), y = c(0, 1))
-
-adapt_arrow <- ggplot(data = data.frame(x = c(0, 1), y = c(0, 1)),
-                      aes(x = x, y = y)) +
-  annotate(
-    "segment",
-    x = 0,
-    xend = 1,
-    y = 0,
-    yend = 0,
-    arrow = arrow()
-  ) +
-  annotate(
-    "text",
-    x = 0.5,
-    y = 0.025,
-    label = "Socio-economic challenges for adaptation",
-    size = 4
-  ) +
-  theme_minimal() +
-  theme(
-    axis.title = element_blank(),
-    axis.text = element_blank(),
-    panel.grid = element_blank()
-  ) +
-  coord_cartesian(xlim = c(0, 1), y = c(-0.04, 0.04))
+source("R/plot-graphics-elements.R")
+# colorz <-
+#   c(
+#     "animal products" = "#F17EB8",
+#     "fish & seafood" = "#489ED3",
+#     "plant products" = "#EEAF35"
+#   )
+# xlabz <- c("CNS-CFP" = "CFP",
+#            "ELA-PHD" = "ELA",
+#            "FDA-SDP" = "USDA")
+# labz <-
+#   c("Animal Products", "Fish and Seafood", "Plant Products")
+# 
+# mitigate_arrow <-
+#   ggplot(data = data.frame(x = c(0, 1), y = c(0, 1)),
+#          aes(x = x, y = y)) +
+#   annotate(
+#     "segment",
+#     x = 0,
+#     xend = 0,
+#     y = 0,
+#     yend = 1,
+#     arrow = arrow()
+#   ) +
+#   annotate(
+#     "text",
+#     x = -0.02,
+#     y = 0.5,
+#     label = "Socio-economic challenges for mitigation",
+#     size = 4,
+#     angle = 90
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     axis.title = element_blank(),
+#     axis.text = element_blank(),
+#     panel.grid = element_blank()
+#   ) +
+#   coord_cartesian(xlim = c(-0.04, 0.04), y = c(0, 1))
+# 
+# adapt_arrow <- ggplot(data = data.frame(x = c(0, 1), y = c(0, 1)),
+#                       aes(x = x, y = y)) +
+#   annotate(
+#     "segment",
+#     x = 0,
+#     xend = 1,
+#     y = 0,
+#     yend = 0,
+#     arrow = arrow()
+#   ) +
+#   annotate(
+#     "text",
+#     x = 0.5,
+#     y = 0.025,
+#     label = "Socio-economic challenges for adaptation",
+#     size = 4
+#   ) +
+#   theme_minimal() +
+#   theme(
+#     axis.title = element_blank(),
+#     axis.text = element_blank(),
+#     panel.grid = element_blank()
+#   ) +
+#   coord_cartesian(xlim = c(0, 1), y = c(-0.04, 0.04))
 
 # UI ----
 not_sel <- "Not Selected"
