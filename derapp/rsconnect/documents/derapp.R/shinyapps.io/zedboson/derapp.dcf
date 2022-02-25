@@ -1,0 +1,13 @@
+name: derapp
+title: derapp
+username:
+account: zedboson
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 5731508
+bundleId: 5615902
+url: https://zedboson.shinyapps.io/derapp/
+when: 1645762056.6987
+lastSyncTime: 1645762056.69872
+asMultiple: FALSE
+asStatic: FALSE
